@@ -1,0 +1,31 @@
+menu "Peripheral or Module"
+
+    menuconfig USE_SPI_OLED
+        bool "spi oled"
+
+    menu "select gpio"
+        depends on USE_SPI_OLED
+
+        config IO_D0
+            int "select d0"
+            default 0
+
+        config IO_D1
+            int "select d1"
+            default 0
+
+        config IO_RES
+            int "select IO_RES"
+            default 0
+
+        config IO_DC
+            int "select dc"
+            default 0
+
+        config IO_CS
+            int "select cs"
+            default 0
+
+    endmenu # select gpio
+
+endmenu # Peripheral
