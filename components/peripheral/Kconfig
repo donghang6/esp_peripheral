@@ -28,4 +28,63 @@ menu "Peripheral or Module"
 
     endmenu # select gpio
 
+    menu "spi bus config"
+        depends on USE_SPI_OLED
+
+        config HSPI_HOST
+            bool "select hspi"
+            default 0
+        config VSPI_HOST
+            bool "select vspi"
+            default 0
+        config MISO_IO_NUM
+            int "select miso_io_num"
+            default 0
+        config MOSI_IO_NUM
+            int "select mosi_io_num"
+            default 0   
+        config SCLK_IO_NUM 
+            int "sclk_io_num"
+            default 0
+        config QUADWP_IO_NUM 
+            int "quadwp_io_num"   
+            default -1
+        config QUADHD_IO_NUM
+            int "quadhd_io_num"
+            default -1
+        config MAX_TRANSFER_SZ
+            int "max_transfer_sz"
+            default 100
+        config DMA_CHAN
+            int "select dma chan"
+            default 0
+
+    endmenu # spi bus config
+
+    menu "spi device interface config"
+        depends on USE_SPI_OLED
+        
+        config COMMAND_BITS 
+            int "command_bits"
+            default 0
+        config ADDRESS_BITS
+            int "address_bits"
+            default 0
+        config CLOCK_SPEED_HZ
+            int "clock_speed_hz"
+            default 1000000
+        config MODE
+            int "mode"
+            default 0
+        config SPICS_IO_NUM
+            int "spics_io_num"
+            default 0
+        config QUEUE_SIZE
+            int "queue_size"
+            default 0
+        config PRE_CB
+            string "pre_cb"
+            default "NULL"
+
+    endmenu # spi device interface config
 endmenu # Peripheral

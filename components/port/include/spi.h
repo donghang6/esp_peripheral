@@ -5,7 +5,7 @@
 #include <string.h>
 #include "driver/spi_master.h"
 #include "driver/spi_slave.h"
-
+#include "sdkconfig.h"
 /*
  * funtion: The struct of spi.
  * @host: SPI peripheral that controls this bus. Only support HSPI_HOST and VSPI_HOST
@@ -22,8 +22,6 @@ struct spi
     spi_device_handle_t spi_handle; // attach spi and device
     int dma_chan;
     spi_host_device_t host;
-    spi_bus_config_t buscfg; // spi bus config
-    spi_device_interface_config_t devcfg; // spi device config
     uint8_t *send_buffer;
     uint8_t *recv_buffer;
     uint8_t send_byte;
@@ -31,17 +29,11 @@ struct spi
 };
 
 typedef struct spi spi_t;
-/*
- * write one byte or bytes
- */
-enum DATA
-{
-    TRANSMIT_A_BYTE = 0,
-    TRANSMIT_BYTES = 1,
-};
 
 esp_err_t open(spi_t *spi);
 esp_err_t close(spi_t *spi);
-esp_err_t write(spi_t *spi, uint8_t *buffer, int len, uint8_t data, int mode, uint8_t uservarabile);
+esp_err_t write_byte(spi_t *spi, uint8_t data, void * uservarabile);
+esp_err_t write_buff(spi_t *spi, uint8_t *buffer, size_t len, void *uservarabile, uint16_t cmd, uint64_t addr);
 void read(void);
 #endif // SPI_H_
+
