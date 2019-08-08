@@ -32,7 +32,7 @@ typedef struct spi spi_t;
 
 esp_err_t open(spi_t *spi);
 esp_err_t close(spi_t *spi);
-esp_err_t write_byte(spi_t *spi, uint8_t data, void * uservarabile);
+esp_err_t write_byte(spi_t *spi, uint8_t data, void * uservarabile, uint16_t cmd, uint64_t addr);
 esp_err_t write_buff(spi_t *spi, uint8_t *buffer, size_t len, void *uservarabile, uint16_t cmd, uint64_t addr);
 void read(void);
 #endif // SPI_H_

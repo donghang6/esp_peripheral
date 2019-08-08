@@ -59,13 +59,15 @@ esp_err_t close(spi_t *spi)
  * @data: the one byte data waitted to be transmitted. This parameter will be used if mode = 0.
  * @uservarabile: User-defined variable. Can be used to store eg transaction ID.
  */
-esp_err_t write_byte(spi_t *spi, uint8_t data, void * uservarabile)
+esp_err_t write_byte(spi_t *spi, uint8_t data, void * uservarabile, uint16_t cmd, uint64_t addr)
 {
     spi_transaction_t t;
     memset(&t, 0, sizeof(t));
     printf("transmit a byte\n");
     printf("start transmit a byte\n");
     t.flags = SPI_TRANS_USE_TXDATA;
+    t.cmd = cmd;
+    t.addr = addr;
     t.length = TOTAL_DATA_LENGTH(1);  // total data length
     t.user = (void*)uservarabile;
     t.tx_data[0] = data;

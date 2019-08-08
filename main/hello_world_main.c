@@ -11,6 +11,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
+// 添加中断方法去写 这个要加在 Kconfig 中
+
 void app_main()
 {
     esp_err_t ret = ESP_FAIL;
@@ -21,7 +23,7 @@ void app_main()
     uint8_t data = 0;
     uint8_t buffer[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
     for(;;) {
-        ret = write_buff(&spi, buffer, 10, 0, 0, 0);
+        ret = write_byte(&spi, data, 0, 0, 0);
         assert(ret == ESP_OK);
         printf("Transmit success!\n");
         vTaskDelay(1000 / portTICK_PERIOD_MS);
