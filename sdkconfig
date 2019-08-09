@@ -599,6 +599,12 @@ CONFIG_IO_DC=4
 CONFIG_IO_CS=5
 
 #
+# polling or interupt
+#
+CONFIG_POLLING_TRANSMIT=
+CONFIG_INTERRUPT_TRANSMIT=y
+
+#
 # spi bus config
 #
 CONFIG_HSPI_HOST=y

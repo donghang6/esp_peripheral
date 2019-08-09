@@ -28,6 +28,16 @@ menu "Peripheral or Module"
 
     endmenu # select gpio
 
+    menu "polling or interupt"
+        depends on USE_SPI_OLED
+
+        config POLLING_TRANSMIT
+            bool "use polling to transmit data"
+        config INTERRUPT_TRANSMIT
+            bool "use interupt to transmit data"
+            
+    endmenu # polling or interupt
+
     menu "spi bus config"
         depends on USE_SPI_OLED
 

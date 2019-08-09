@@ -71,7 +71,11 @@ esp_err_t write_byte(spi_t *spi, uint8_t data, void * uservarabile, uint16_t cmd
     t.length = TOTAL_DATA_LENGTH(1);  // total data length
     t.user = (void*)uservarabile;
     t.tx_data[0] = data;
-    spi->ret = spi_device_polling_transmit(spi->spi_handle, &t); // Transmit!
+    #if CONFIG_POLLING_TRANSMIT
+        spi->ret = spi_device_polling_transmit(spi->spi_handle, &t); // Transmit!
+    #elif CONFIG_INTERRUPT_TRANSMIT
+        spi->ret = spi_device_transmit(spi->spi_handle, &t);  
+    #endif  
     assert(spi->ret == ESP_OK);
     return spi->ret;
 }
@@ -96,7 +100,11 @@ esp_err_t write_buff(spi_t *spi, uint8_t *buffer, size_t len, void *uservarabile
     t.length = TOTAL_DATA_LENGTH(len);
     t.tx_buffer = buffer;
     t.user = uservarabile;
-    spi->ret = spi_device_polling_transmit(spi->spi_handle, &t); // Transmit!
+    #if CONFIG_POLLING_TRANSMIT
+        spi->ret = spi_device_polling_transmit(spi->spi_handle, &t); // Transmit!
+    #elif CONFIG_INTERRUPT_TRANSMIT
+        spi->ret = spi_device_transmit(spi->spi_handle, &t);
+    #endif
     assert(spi->ret == ESP_OK);
     return spi->ret;
 }
