@@ -3,6 +3,7 @@
         "spi.h": "c",
         "stdlib.h": "c",
         "spi_slave.h": "c",
-        "sdkconfig.h": "c"
+        "sdkconfig.h": "c",
+        "freertos.h": "c"
     }
 }
