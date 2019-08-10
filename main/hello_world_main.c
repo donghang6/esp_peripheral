@@ -10,23 +10,26 @@
 #include "spi.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-
-// 添加中断方法去写 这个要加在 Kconfig 中
+#include "spi_oled.h"
+/*
+ * if this contructure couldn't relate to real device(eg. OLED), 
+ * it's have no meaning. Because it's diffierent to each device.
+ */
+// slove the problem of CS and DMA 是否可以采用注册的方式接收不同 SPI 从设备的数据
+// 先采用两个设备试一试
+// 将总线与具体的设备分开，总线保持。每个设备注册自己的 spi_device_interface_config_t
 
 void app_main()
 {
     esp_err_t ret = ESP_FAIL;
     spi_t spi;
-    ret = open(&spi);
+    ret = spi_bus_init(&spi); // initialize spi bus
     assert(ret == ESP_OK);
-    printf("Initial SPI OK!\n");
-    uint8_t data = 0;
-    uint8_t buffer[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    ret = oled_init(&spi);
+    assert(ret == ESP_OK);
+    ret = oled_clear(&spi);
+    assert(ret == ESP_OK);
     for(;;) {
-        ret = write_byte(&spi, data, 0, 0, 0);
-        assert(ret == ESP_OK);
-        printf("Transmit success!\n");
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-        data++;
+
     }
 }

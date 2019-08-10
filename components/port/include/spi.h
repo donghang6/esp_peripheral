@@ -6,6 +6,7 @@
 #include "driver/spi_master.h"
 #include "driver/spi_slave.h"
 #include "sdkconfig.h"
+
 /*
  * funtion: The struct of spi.
  * @host: SPI peripheral that controls this bus. Only support HSPI_HOST and VSPI_HOST
@@ -30,7 +31,8 @@ struct spi
 
 typedef struct spi spi_t;
 
-esp_err_t open(spi_t *spi);
+esp_err_t spi_bus_init(spi_t *spi);
+esp_err_t open(spi_t *spi, spi_device_interface_config_t *devcfg);
 esp_err_t close(spi_t *spi);
 esp_err_t write_byte(spi_t *spi, uint8_t data, void * uservarabile, uint16_t cmd, uint64_t addr);
 esp_err_t write_buff(spi_t *spi, uint8_t *buffer, size_t len, void *uservarabile, uint16_t cmd, uint64_t addr);

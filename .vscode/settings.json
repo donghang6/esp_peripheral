@@ -4,6 +4,11 @@
         "stdlib.h": "c",
         "spi_slave.h": "c",
         "sdkconfig.h": "c",
-        "freertos.h": "c"
+        "freertos.h": "c",
+        "string.h": "c",
+        "spi_master.h": "c",
+        "spi_oled.h": "c",
+        "gpio.h": "c",
+        "oled.h": "c"
     }
 }
