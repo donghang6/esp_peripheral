@@ -6,9 +6,9 @@
 void lcd_spi_pre_transfer_callback(spi_transaction_t *t)
 {
     int dc=(int)t->user;
+
     gpio_set_level(CONFIG_IO_DC, dc);
 }
-
 
 spi_device_interface_config_t oledcfg  = {
     .command_bits = CONFIG_COMMAND_BITS,
@@ -27,6 +27,7 @@ esp_err_t oled_gpio_config(gpio_config_t *oled_io_conf)
     oled_io_conf->pull_down_en = GPIO_PULLDOWN_ENABLE;
     oled_io_conf->mode = GPIO_MODE_OUTPUT;
     ret = gpio_config(oled_io_conf);
+
     return ret;
 }
 
@@ -86,6 +87,7 @@ esp_err_t oled_init(spi_t *spi)
     gpio_set_level(CONFIG_IO_RES, 0);
     vTaskDelay(200 / portTICK_RATE_MS );
     gpio_set_level(CONFIG_IO_RES, 1);
+
     return oled_write_buf(spi, init_cmd, 29, COMMAND);
 }
 
@@ -94,7 +96,9 @@ esp_err_t oled_clear(spi_t *spi)
     esp_err_t ret = ESP_FAIL;
 	uint8_t i;    
     uint8_t clear_buf[128];
+
     memset(clear_buf, 0xFF, 128*sizeof(uint8_t));
+
 	for(i=0; i<8; i++)
 	{  
 		ret = oled_write_byte(spi, 0xB0+i, COMMAND);    //设置页地址（0~7）
@@ -105,6 +109,7 @@ esp_err_t oled_clear(spi_t *spi)
         assert(ret ==ESP_OK);
         ret = oled_write_buf(spi, clear_buf, 128, DATA);
         assert(ret ==ESP_OK);
-	} //更新显示
+	}   //更新显示
+
     return ret;
 }
