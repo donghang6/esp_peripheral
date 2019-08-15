@@ -20,6 +20,7 @@
 void lcd_spi_pre_transfer_callback(spi_transaction_t *t)
 {
     int dc=(int)t->user;
+
     gpio_set_level(CONFIG_IO_DC, dc);
 }
 
@@ -48,6 +49,7 @@ static esp_err_t oled_gpio_config(gpio_config_t *oled_io_conf)
     oled_io_conf->pull_down_en = GPIO_PULLDOWN_ENABLE;
     oled_io_conf->mode = GPIO_MODE_OUTPUT;
     ret = gpio_config(oled_io_conf);
+
     return ret;
 }
 
@@ -151,17 +153,17 @@ static void oled_set_page_segment(uint8_t *cmd, uint8_t page, uint8_t segment)
 esp_err_t oled_clear(spi_t *spi)  
 {
     esp_err_t ret = ESP_FAIL;
-	uint8_t page = 0; // from 0 to 7
+	  uint8_t page = 0; // from 0 to 7
     uint8_t clear_buf[128];
     memset(clear_buf, 0, 128*sizeof(uint8_t));
-	for(; page < 8; page++) {  
-        uint8_t page_address_cmd[3] = {};
-        oled_set_page_segment(page_address_cmd, page, 0);
-		ret = oled_write_buf(spi, page_address_cmd, 3, COMMAND);
-        assert(ret ==ESP_OK);
-        ret = oled_write_buf(spi, clear_buf, 128, DATA);
-        assert(ret ==ESP_OK);
-	}
+    for(; page < 8; page++) {  
+          uint8_t page_address_cmd[3] = {};
+          oled_set_page_segment(page_address_cmd, page, 0);
+          ret = oled_write_buf(spi, page_address_cmd, 3, COMMAND);
+          assert(ret ==ESP_OK);
+          ret = oled_write_buf(spi, clear_buf, 128, DATA);
+          assert(ret ==ESP_OK);
+    }
     return ret;
 }
 
@@ -336,7 +338,7 @@ static esp_err_t* oled_show_chinese(spi_t *spi, uint8_t page, uint8_t segment, c
     return ret;
 }
 
-// 目前只支持16*16的字库
+// 目前只支锟斤拷16*16锟斤拷锟街匡拷
 /**
  * @brief: 
  * @param {type} 
