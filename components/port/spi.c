@@ -1,3 +1,11 @@
+/*
+ * @Descripttion: 
+ * @version: 
+ * @Author: donghang
+ * @Date: 2019-08-04 21:56:33
+ * @LastEditors: donghang
+ * @LastEditTime: 2019-08-15 23:55:02
+ */
 #include  "spi.h"
 
 #define ONE_BYTE_LENGTH 8
@@ -39,8 +47,9 @@ esp_err_t spi_bus_init(spi_t *spi)
  * @brief: open a spi port
  * @note: if you want to add more than one device, 'spi_bus_add_device' should detach from device to device.
  * @spi: the all of SPI
+ * @return: ESP_OK on success and ESP_FAIL on fail
  */
-esp_err_t open(spi_t *spi, spi_device_interface_config_t *devcfg)
+esp_err_t openport(spi_t *spi, spi_device_interface_config_t *devcfg)
 {
     #if CONFIG_HSPI_HOST
         spi->host = HSPI_HOST;
@@ -52,7 +61,12 @@ esp_err_t open(spi_t *spi, spi_device_interface_config_t *devcfg)
     return spi->ret;
 }
 
-esp_err_t close(spi_t *spi)
+/**
+ * @brief: 
+ * @param {type} 
+ * @return: 
+ */
+esp_err_t closeport(spi_t *spi)
 {
     spi->ret = spi_bus_remove_device(spi->spi_handle);
     assert(spi->ret == ESP_OK);
@@ -66,6 +80,11 @@ esp_err_t close(spi_t *spi)
  * @spi: the all of SPI.
  * @data: the one byte data waitted to be transmitted. This parameter will be used if mode = 0.
  * @uservarabile: User-defined variable. Can be used to store eg transaction ID.
+ */
+/**
+ * @brief: 
+ * @param {type} 
+ * @return: 
  */
 esp_err_t write_byte(spi_t *spi, uint8_t data, void * uservarabile, uint16_t cmd, uint64_t addr)
 {
@@ -95,6 +114,11 @@ esp_err_t write_byte(spi_t *spi, uint8_t data, void * uservarabile, uint16_t cmd
  * @cmd: if set the command bits, cmd will be the command data. And this parameter will be the first data to be transmitted.
  * @addr: if set the address bits, addr will be the address data. And this parameter will be the second data to be transmitted.
  */
+/**
+ * @brief: 
+ * @param {type} 
+ * @return: 
+ */
 esp_err_t write_buff(spi_t *spi, uint8_t *buffer, size_t len, void *uservarabile, uint16_t cmd, uint64_t addr)
 {
     spi_transaction_t t;
@@ -117,7 +141,12 @@ esp_err_t write_buff(spi_t *spi, uint8_t *buffer, size_t len, void *uservarabile
 /*
  * later process
  */
-void read(void)
+void read_byte(void)
+{
+
+}
+
+void read_buff(void)
 {
 
 }

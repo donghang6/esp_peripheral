@@ -1,35 +1,41 @@
-/* Hello World Example
-
-   This example code is in the Public Domain (or CC0 licensed, at your option.)
-
-   Unless required by applicable law or agreed to in writing, this
-   software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-   CONDITIONS OF ANY KIND, either express or implied.
-*/
+/*
+ * @Descripttion: 
+ * @version: 
+ * @Author: donghang
+ * @Date: 2019-08-04 21:56:33
+ * @LastEditors: donghang
+ * @LastEditTime: 2019-08-15 23:51:47
+ */
 #include <stdio.h>
 #include "spi.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "spi_oled.h"
+#include "sdio_tfcard.h"
 /*
  * if this contructure couldn't relate to real device(eg. OLED), 
  * it's have no meaning. Because it's diffierent to each device.
  */
-// slove the problem of CS and DMA æ˜¯å¦å¯ä»¥é‡‡ç”¨æ³¨å†Œçš„æ–¹å¼æ¥æ”¶ä¸åŒ SPI ä»è®¾å¤‡çš„æ•°æ®
-// å…ˆé‡‡ç”¨ä¸¤ä¸ªè®¾å¤‡è¯•ä¸€è¯•
-// å°†æ€»çº¿ä¸å…·ä½“çš„è®¾å¤‡åˆ†å¼€ï¼Œæ€»çº¿ä¿æŒã€‚æ¯ä¸ªè®¾å¤‡æ³¨å†Œè‡ªå·±çš„ spi_device_interface_config_t
 
 void app_main()
 {
     esp_err_t ret = ESP_FAIL;
-    spi_t spi;
-    ret = spi_bus_init(&spi); // initialize spi bus
+    spi_t oled_spi;
+    ret = spi_bus_init(&oled_spi); // initialize spi bus
     assert(ret == ESP_OK);
-    ret = oled_init(&spi);
+    ret = oled_power_up(&oled_spi);
     assert(ret == ESP_OK);
-    ret = oled_clear(&spi);
+    ret = oled_clear(&oled_spi);
     assert(ret == ESP_OK);
-    for(;;) {
-
+    sdmmc_card_t* card;
+    sdio_tfcard_init(&card);
+    // oled_show_string(&oled_spi, 0, 0, "¶­º½ÀÖöÎºÏ·Ê°²»Õ°²Çì1234567890¸üÃ÷È·µÄËµÊÇÖ¸ÉêÇëÄÚ´æ¿Õ¼äÊ±»¹²»ÖªµÀÓÃ»§ÊÇÓÃÕâ¶Î¿Õ¼äÀ´´æ´¢Ê²Ã´ÀàĞÍµÄÊı¾İ");
+    // oled_left_horizontal_scroll(&oled_spi, 5, 7, 0);
+    oled_show_number(&oled_spi, 0, 0, 11.01);
+    for(;;)
+    {
+        printf("\n");
+        printf("\nHello World\n");
+        vTaskDelay(1000 / portTICK_RATE_MS );
     }
 }
