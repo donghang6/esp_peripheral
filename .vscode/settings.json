@@ -11,6 +11,9 @@
         "gpio.h": "c",
         "oled.h": "c",
         "task.h": "c",
-        "sdio_tfcard.h": "c"
+        "sdio_tfcard.h": "c",
+        "stdio.h": "c",
+        "font.h": "c",
+        "w25qxx.h": "c"
     }
 }
