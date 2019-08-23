@@ -4,14 +4,13 @@
  * @Author: donghang
  * @Date: 2019-08-04 21:56:33
  * @LastEditors: donghang
- * @LastEditTime: 2019-08-15 23:55:02
+ * @LastEditTime: 2019-08-21 22:39:17
  */
 #include  "spi.h"
 
 #define ONE_BYTE_LENGTH 8
 #define TOTAL_DATA_LENGTH(length) length*ONE_BYTE_LENGTH
 
-// 　could i attach more than one device in SPI Master?
 spi_bus_config_t buscfg = {
     .miso_io_num = CONFIG_MISO_IO_NUM,
     .mosi_io_num = CONFIG_MOSI_IO_NUM,
@@ -24,7 +23,7 @@ spi_bus_config_t buscfg = {
 /*
  * @brief: Initialize the SPI bus.
  * @note: acquire the host of spi.
- * @param: spi the spi structure hold the content of SPI bus.
+ * @param: `spi` the spi structure hold the content of SPI bus.
  * @return: 
  *         - ESP_ERR_INVALID_ARG if configuration is invalid
  *         - ESP_ERR_INVALID_STATE if host already is in use
@@ -46,8 +45,10 @@ esp_err_t spi_bus_init(spi_t *spi)
 /*
  * @brief: open a spi port
  * @note: if you want to add more than one device, 'spi_bus_add_device' should detach from device to device.
- * @spi: the all of SPI
- * @return: ESP_OK on success and ESP_FAIL on fail
+ * @param: `spi` the handle of SPI
+ *         `devcfg` the spi device interface config
+ * @return: ESP_OK on success 
+ *          ESP_FAIL on fail
  */
 esp_err_t openport(spi_t *spi, spi_device_interface_config_t *devcfg)
 {
@@ -62,29 +63,28 @@ esp_err_t openport(spi_t *spi, spi_device_interface_config_t *devcfg)
 }
 
 /**
- * @brief: 
- * @param {type} 
- * @return: 
+ * @brief: remove device from spi bus
+ * @param: `spi` the handle of SPI 
+ * @return: ESP_OK on success
+ *          ESP_FAIL on fail
  */
 esp_err_t closeport(spi_t *spi)
 {
     spi->ret = spi_bus_remove_device(spi->spi_handle);
     assert(spi->ret == ESP_OK);
-    // spi->ret = spi_bus_free(spi->host);
-    // assert(spi->ret == ESP_OK);
     return spi->ret;
 }
 
-/*
- * @brief: write content to device attached through spi port.
- * @spi: the all of SPI.
- * @data: the one byte data waitted to be transmitted. This parameter will be used if mode = 0.
- * @uservarabile: User-defined variable. Can be used to store eg transaction ID.
- */
 /**
- * @brief: 
- * @param {type} 
- * @return: 
+ * @brief: write content to device attached through spi port.
+ * @param: `spi` the handle of SPI
+ *         `data` the single byte to be transmitted to the peer device
+ *         `usevarabile` User-defined variable. Can be used to store eg transaction ID
+ *         `cmd` if set the length of command in spi_device_interface_config_t, this param will be transmitted 
+ *         `add` if set the length of address in spi_device_interface_config_t, this param will be transmitted 
+ *         `rxdata` the receive data which is one byte from the peer advice 
+ * @return: ESP_OK success
+ *          ESP_FAIL fail
  */
 esp_err_t write_byte(spi_t *spi, uint8_t data, void * uservarabile, uint16_t cmd, uint64_t addr)
 {
@@ -99,27 +99,23 @@ esp_err_t write_byte(spi_t *spi, uint8_t data, void * uservarabile, uint16_t cmd
     #if CONFIG_POLLING_TRANSMIT
         spi->ret = spi_device_polling_transmit(spi->spi_handle, &t); // Transmit!
     #elif CONFIG_INTERRUPT_TRANSMIT
-        spi->ret = spi_device_transmit(spi->spi_handle, &t);  
-    #endif  
+        spi->ret = spi_device_transmit(spi->spi_handle, &t);
+    #endif
     assert(spi->ret == ESP_OK);
     return spi->ret;
 }
-
-/*
- * @brief: write content to device attached through spi port.
- * @spi: the all of SPI.
- * @buffer: the data buffer waitted to be transmitted. This parameter will be used if mode = 1.
- * @len: the length of buffer.
- * @uservarabile: User-defined variable. Can be used to store eg transaction ID. if in oled, this parameter could be cmd or data.
- * @cmd: if set the command bits, cmd will be the command data. And this parameter will be the first data to be transmitted.
- * @addr: if set the address bits, addr will be the address data. And this parameter will be the second data to be transmitted.
- */
 /**
- * @brief: 
- * @param {type} 
- * @return: 
+ * @brief: write content to device attached through spi port.
+ * @param: `spi` the handle of SPI 
+ *         `txbuffer` the data buffer waitted to be transmitted.
+ *         `len` the length of buffer.
+ *         `uservarabile` User-defined variable. Can be used to store eg transaction ID. if in oled, this parameter could be cmd or data.
+ *         `cmd` if set the command bits, cmd will be the command data. And this parameter will be the first data to be transmitted
+ *         `addr` if set the address bits, addr will be the address data. And this parameter will be the second data to be transmitted
+ * @return: ESP_OK success
+ *          ESP_FAIL fail
  */
-esp_err_t write_buff(spi_t *spi, uint8_t *buffer, size_t len, void *uservarabile, uint16_t cmd, uint64_t addr)
+esp_err_t read_write_buff(spi_t *spi, uint8_t *txbuffer, size_t len, void *uservarabile, uint16_t cmd, uint64_t addr, uint8_t *rxbuffer)
 {
     spi_transaction_t t;
     memset(&t, 0, sizeof(t));
@@ -127,7 +123,8 @@ esp_err_t write_buff(spi_t *spi, uint8_t *buffer, size_t len, void *uservarabile
     t.cmd = cmd;
     t.addr = addr;
     t.length = TOTAL_DATA_LENGTH(len);
-    t.tx_buffer = buffer;
+    t.tx_buffer = txbuffer;
+    t.rx_buffer = rxbuffer;
     t.user = uservarabile;
     #if CONFIG_POLLING_TRANSMIT
         spi->ret = spi_device_polling_transmit(spi->spi_handle, &t); // Transmit! Transaction are atomic.
@@ -136,17 +133,4 @@ esp_err_t write_buff(spi_t *spi, uint8_t *buffer, size_t len, void *uservarabile
     #endif
     assert(spi->ret == ESP_OK);
     return spi->ret;
-}
-
-/*
- * later process
- */
-void read_byte(void)
-{
-
-}
-
-void read_buff(void)
-{
-
 }

@@ -4,7 +4,7 @@
  * @Author: donghang
  * @Date: 2019-08-04 21:56:33
  * @LastEditors: donghang
- * @LastEditTime: 2019-08-15 23:56:58
+ * @LastEditTime: 2019-08-21 22:41:45
  */
 #include "spi_oled.h"
 #include "driver/gpio.h"
@@ -58,7 +58,7 @@ static esp_err_t oled_gpio_config(gpio_config_t *oled_io_conf)
  */
 static esp_err_t oled_write_buf(spi_t *spi, uint8_t *buffer, size_t len, void *uservarabile)
 {
-    return write_buff(spi, buffer, len, uservarabile, 0, 0);
+    return read_write_buff(spi, buffer, len, uservarabile, 0, 0, NULL);
 }
 
 /**
@@ -66,7 +66,7 @@ static esp_err_t oled_write_buf(spi_t *spi, uint8_t *buffer, size_t len, void *u
  * @param {type} 
  * @return: 
  */
-static esp_err_t oled_write_byte(spi_t *spi, uint8_t data, void * uservarabile)
+static uint8_t oled_write_byte(spi_t *spi, uint8_t data, void * uservarabile)
 {
     return write_byte(spi, data, uservarabile, 0, 0);
 }
@@ -306,7 +306,7 @@ static void transposition(uint16_t *raw_data, uint8_t *processed_data)
  * @param {type} 
  * @return: 
  */
-static esp_err_t* oled_show_chinese(spi_t *spi, uint8_t page, uint8_t segment, char* s)
+static esp_err_t oled_show_chinese(spi_t *spi, uint8_t page, uint8_t segment, char* s)
 {
     esp_err_t ret = ESP_FAIL;
     FILE* f = fopen("/sdcard/GBK16.FON", "rb");
@@ -336,7 +336,7 @@ static esp_err_t* oled_show_chinese(spi_t *spi, uint8_t page, uint8_t segment, c
     return ret;
 }
 
-// 目前只支持16*16的字库
+// 目前只支锟斤拷16*16锟斤拷锟街匡拷
 /**
  * @brief: 
  * @param {type} 
