@@ -4,7 +4,7 @@
  * @Author: donghang
  * @Date: 2019-08-20 06:39:45
  * @LastEditors: donghang
- * @LastEditTime: 2019-08-22 23:28:42
+ * @LastEditTime: 2019-08-24 00:26:25
  */
 #ifndef __FLASH_H
 #define __FLASH_H			    
@@ -44,7 +44,6 @@ extern uint16_t W25QXX_TYPE;
 #define W25X_JedecDeviceID		0x9F 
 
 esp_err_t W25QXX_Init(spi_t *spi);
-uint16_t W25QXX_ReadID(spi_t *spi);
 uint8_t W25QXX_ReadSR(spi_t *spi);
 esp_err_t W25QXX_Write_SR(spi_t *spi, uint8_t sr);
 esp_err_t W25QXX_Write_Enable(spi_t *spi);
@@ -54,9 +53,15 @@ esp_err_t W25QXX_Read(spi_t *spi, uint8_t* pBuffer, uint32_t ReadAddr, uint16_t 
 esp_err_t W25QXX_Write(spi_t *spi, uint8_t* pBuffer, uint32_t WriteAddr, uint16_t NumByteToWrite);
 esp_err_t W25QXX_Erase_Chip(spi_t *spi);
 esp_err_t W25QXX_Erase_Sector(spi_t *spi, uint32_t Dst_Addr);
-void W25QXX_Wait_Busy(spi_t *spi);
 esp_err_t W25QXX_PowerDown(spi_t *spi);
 esp_err_t W25QXX_WAKEUP(spi_t *spi);
+esp_err_t w25qxx_open(spi_t *spi);
+esp_err_t w25qxx_close(spi_t *spi);
+
+void W25QXX_Init_auto(spi_t *spi);
+void W25QXX_Write_auto(spi_t *spi, uint8_t* pBuffer, uint32_t WriteAddr, uint16_t NumByteToWrite);
+void W25QXX_Read_auto(spi_t *spi, uint8_t* pBuffer, uint32_t ReadAddr, uint16_t NumByteToRead);
+
 #endif
 
 

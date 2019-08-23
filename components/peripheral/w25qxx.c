@@ -4,7 +4,7 @@
  * @Author: donghang
  * @Date: 2019-08-20 06:39:45
  * @LastEditors: donghang
- * @LastEditTime: 2019-08-23 08:26:55
+ * @LastEditTime: 2019-08-24 00:23:58
  */
 #include "w25qxx.h"
 #include "stdlib.h"
@@ -14,6 +14,9 @@
 
 #define ONE_PAGE_BYTES 256
 #define ONE_SECTOR_SIZE 4096
+
+static void W25QXX_Wait_Busy(spi_t *spi);
+static uint16_t W25QXX_ReadID(spi_t *spi);
 
 // uint8_t W25QXX_BUFFER[4096] = {}; // a seator 4Kb
 
@@ -63,7 +66,6 @@ static esp_err_t w25qxx_write_byte(spi_t *spi, uint8_t data)
  */
 esp_err_t W25QXX_Init(spi_t *spi)
 {
-    spi->ret = openport(spi, &w25qxxcfg);
     W25QXX_TYPE = W25QXX_ReadID(spi);
     printf("w25qxx Manufacturer ID is %x\n", (W25QXX_TYPE >> 8) & 0x00FF);
     printf("w25qxx Device ID is %x\n", W25QXX_TYPE & 0x00FF);
@@ -71,11 +73,27 @@ esp_err_t W25QXX_Init(spi_t *spi)
 }
 
 /**
+ * @brief: initialize w25qxx
+ * @param: spi the handle of SPI 
+ * @return: ESP_OK on success
+ *          ESP_FAIL on fail
+ */
+void W25QXX_Init_auto(spi_t *spi)
+{
+    spi->ret = w25qxx_open(spi);
+    assert(spi->ret == ESP_OK);
+    spi->ret = W25QXX_Init(spi);
+    assert(spi->ret == ESP_OK);
+    spi->ret = w25qxx_close(spi);
+    assert(spi->ret == ESP_OK);
+}
+
+/**
  * @brief: read the Manufacturer ID and Device ID
  * @param: `spi` the handle of SPI
  * @return: Manufacturer ID and Device ID, the high is Manufacturer ID and low id Device ID
  */
-uint16_t W25QXX_ReadID(spi_t *spi)
+static uint16_t W25QXX_ReadID(spi_t *spi)
 {
     uint8_t cmd_set[6] = {0, 0, 0, 0, 0xFF, 0xFF};
     uint8_t receive[6] = {0, 0, 0, 0, 0, 0};
@@ -167,6 +185,24 @@ esp_err_t W25QXX_Read(spi_t *spi, uint8_t* pBuffer, uint32_t ReadAddr, uint16_t 
     return spi->ret;
 }
 
+
+/**
+ * @brief: Reads the data of the specified length at the specified location. the address is from high to low
+ * @param: `pBuffer` the data which has been read to be stored in this array
+ *         `ReadAddr` the address that is about to read 
+ *         `NunByteToRead` the bytes to read
+ * @return: ESP_OK on success
+ *          ESP_FAIL on fail
+ */
+void W25QXX_Read_auto(spi_t *spi, uint8_t* pBuffer, uint32_t ReadAddr, uint16_t NumByteToRead)
+{
+    spi->ret = w25qxx_open(spi);
+    assert(spi->ret == ESP_OK);
+    spi->ret = W25QXX_Read(spi, pBuffer, ReadAddr, NumByteToRead);
+    assert(spi->ret == ESP_OK);
+    spi->ret = w25qxx_close(spi);
+    assert(spi->ret == ESP_OK);
+}
 /**
  * @brief: SPI writes less than 256 bytes of data on one page (0 ≤ 65535). 
  *         Writes up to 256 bytes of data at the specified address.
@@ -235,6 +271,7 @@ static void W25QXX_Read_4K(spi_t *spi)
     W25QXX_Read(spi, W25QXX_BUFFER[2], 2048, 1024);
     W25QXX_Read(spi, W25QXX_BUFFER[3], 3072, 1024);
 }
+
 /**
  * @brief: write SPI FLASH in indicate address. this function has erase feature(the least erase size is 4Kb)
  * @param: `spi` the handle of SPI
@@ -298,12 +335,27 @@ esp_err_t W25QXX_Write(spi_t *spi, uint8_t* pBuffer, uint32_t WriteAddr, uint16_
             }
         }
     }
-    for(int pos = 0; pos < ONE_SECTOR_SIZE; pos++) {
-        
-    }
     return spi->ret;
 }
 
+/**
+ * @brief: write SPI FLASH in indicate address. this function has erase feature(the least erase size is 4Kb)
+ * @param: `spi` the handle of SPI
+ *         `pBuffer` data storage area
+ *         `WriteAddr` address to write data, the address should be 4k alignment.
+ *         `NumByteToWrite` the bytes to write. the number shoule not bigger than the rest bytes of this page
+ * @return: ESP_OK on success
+ *          ESP_FAIL on fail
+ */
+void W25QXX_Write_auto(spi_t *spi, uint8_t* pBuffer, uint32_t WriteAddr, uint16_t NumByteToWrite)
+{
+    spi->ret = w25qxx_open(spi);
+    assert(spi->ret == ESP_OK);
+    spi->ret = W25QXX_Write(spi, pBuffer, WriteAddr, NumByteToWrite);
+    assert(spi->ret == ESP_OK);
+    spi->ret = w25qxx_close(spi);
+    assert(spi->ret == ESP_OK);
+}
 /**
  * @brief: erase all chip
  * @param: `spi` the handle of SPI 
@@ -350,7 +402,7 @@ esp_err_t W25QXX_Erase_Sector(spi_t *spi, uint32_t Dst_Addr)
  * @return: ESP_OK on success
  *          ESP_FAIL on fail
  */
-void W25QXX_Wait_Busy(spi_t *spi)
+static void W25QXX_Wait_Busy(spi_t *spi)
 {
     while((W25QXX_ReadSR(spi) & 0x01)==0x01) // wait BUST bit to be cleared
         continue;
@@ -382,4 +434,27 @@ esp_err_t W25QXX_WAKEUP(spi_t *spi)
     assert(spi->ret == ESP_OK);
     vTaskDelay(1 / portTICK_RATE_MS );
     return spi->ret;
+}
+
+/**
+ * @brief: remove w25qxx from spi bus
+ * @param: `spi` the handle of SPI
+ * @return: ESP_OK success
+ *          ESP_FAIL fail
+ */
+esp_err_t w25qxx_close(spi_t *spi)
+{
+    return closeport(spi);
+}
+
+/**
+ * @brief: add w25qxx from spi bus
+ * @param: `spi` the handle of SPI
+ *         `devcfg` the pointer of spi_device_interface_config_t
+ * @return: ESP_OK success
+ *          ESP_FAIL fail
+ */
+esp_err_t w25qxx_open(spi_t *spi)
+{
+    return openport(spi, &w25qxxcfg);
 }
