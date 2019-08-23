@@ -4,7 +4,7 @@
  * @Author: donghang
  * @Date: 2019-08-04 21:56:33
  * @LastEditors: donghang
- * @LastEditTime: 2019-08-21 22:41:45
+ * @LastEditTime: 2019-08-24 06:39:24
  */
 #include "spi_oled.h"
 #include "driver/gpio.h"
@@ -13,9 +13,9 @@
 #include "font.h"
 
 /**
- * @brief: 
- * @param {type} 
- * @return: 
+ * @brief: the callback should be called before transfer
+ * @param: `t` the pointer spi_transaction_t
+ * @return: none
  */
 void lcd_spi_pre_transfer_callback(spi_transaction_t *t)
 {
@@ -24,7 +24,7 @@ void lcd_spi_pre_transfer_callback(spi_transaction_t *t)
 }
 
 /**
- * @brief: 
+ * @brief: the oled interface config
  */
 spi_device_interface_config_t oledcfg  = {
     .command_bits = CONFIG_COMMAND_BITS,
@@ -37,9 +37,10 @@ spi_device_interface_config_t oledcfg  = {
 };
 
 /**
- * @brief: 
- * @param {type} 
- * @return: 
+ * @brief: the gpio config of oled, such as res and dc
+ * @param: `oled_io_conf` the pointer of gpio config structure
+ * @return: ESP_OK on success
+ *          ESP_FAIL on fail
  */
 static esp_err_t oled_gpio_config(gpio_config_t *oled_io_conf)
 {
@@ -85,8 +86,6 @@ esp_err_t oled_power_up(spi_t *spi)
     memset(&oled_io_conf, 0, sizeof(gpio_config_t));
     ret = oled_gpio_config(&oled_io_conf);
     assert(ret == ESP_OK);
-    ret = openport(spi, &oledcfg);
-    assert(ret ==ESP_OK);
 
     init_cmd[0]  = 0xAE;  //---turn off oled panel
     init_cmd[1]  = 0x00;  //---set low column address
@@ -136,6 +135,20 @@ esp_err_t oled_power_up(spi_t *spi)
  * @param {type} 
  * @return: 
  */
+void oled_power_up_auto(spi_t *spi)
+{
+    spi->ret = oled_open(spi);
+    assert(spi->ret == ESP_OK);
+    spi->ret = oled_power_up(spi);
+    assert(spi->ret == ESP_OK);
+    spi->ret = oled_close(spi);
+    assert(spi->ret == ESP_OK);
+}
+/**
+ * @brief: 
+ * @param {type} 
+ * @return: 
+ */
 static void oled_set_page_segment(uint8_t *cmd, uint8_t page, uint8_t segment)
 {
     cmd[0] = 0xB0 + page;
@@ -165,6 +178,20 @@ esp_err_t oled_clear(spi_t *spi)
     return ret;
 }
 
+/**
+ * @brief: 
+ * @param {type} 
+ * @return: 
+ */
+void oled_clear_auto(spi_t *spi)  
+{
+    spi->ret = oled_open(spi);
+    assert(spi->ret == ESP_OK);
+    spi->ret = oled_clear(spi);
+    assert(spi->ret == ESP_OK);
+    spi->ret = oled_close(spi);
+    assert(spi->ret == ESP_OK);
+}
 /**
  * @brief: 
  * @param {type} 
@@ -269,9 +296,9 @@ static esp_err_t oled_show_char(spi_t *spi, uint8_t page, uint8_t segment, char*
 }
 
 /**
- * @brief: 
+ * @brief: transpose one column
  * @param {type} 
- * @return: 
+ * @return: transposed one column
  */
 static uint16_t transpose_one_column(uint16_t *raw_data, uint16_t shift_column, uint8_t choosed_column) {
     uint16_t transposed_column = 0;
@@ -283,9 +310,9 @@ static uint16_t transpose_one_column(uint16_t *raw_data, uint16_t shift_column, 
 }
 
 /**
- * @brief: 
+ * @brief: transpose the all array
  * @param {type} 
- * @return: 
+ * @return: none
  */
 static void transposition(uint16_t *raw_data, uint8_t *processed_data)
 {
@@ -302,9 +329,13 @@ static void transposition(uint16_t *raw_data, uint8_t *processed_data)
 }
 
 /**
- * @brief: 
- * @param {type} 
- * @return: 
+ * @brief: shou chinese
+ * @param: `spi` the handle of SPI
+ *         `page` choose the page(0-7)
+ *         `segment` choose the segment(0-127)
+ *         `str` the string to be showed in oled, could be chinese
+ * @return: ESP_OK success
+ *          ESP_FAIL fail
  */
 static esp_err_t oled_show_chinese(spi_t *spi, uint8_t page, uint8_t segment, char* s)
 {
@@ -336,11 +367,14 @@ static esp_err_t oled_show_chinese(spi_t *spi, uint8_t page, uint8_t segment, ch
     return ret;
 }
 
-// Ŀǰֻ֧��16*16���ֿ�
 /**
- * @brief: 
- * @param {type} 
- * @return: 
+ * @brief: show string
+ * @param: `spi` the handle of SPI
+ *         `page` choose the page(0-7)
+ *         `segment` choose the segment(0-127)
+ *         `str` the string to be showed in oled, could be chinese or ascii 
+ * @return: ESP_OK success
+ *          ESP_FAIL fail
  */
 esp_err_t oled_show_string(spi_t *spi, uint8_t page, uint8_t segment, char* str)
 {
@@ -387,9 +421,32 @@ esp_err_t oled_show_string(spi_t *spi, uint8_t page, uint8_t segment, char* str)
 }
 
 /**
- * @brief: 
- * @param {type} 
- * @return: 
+ * @brief: show string
+ * @param: `spi` the handle of SPI
+ *         `page` choose the page(0-7)
+ *         `segment` choose the segment(0-127)
+ *         `str` the string to be showed in oled, could be chinese or ascii 
+ * @return: ESP_OK success
+ *          ESP_FAIL fail
+ */
+void oled_show_string_auto(spi_t *spi, uint8_t page, uint8_t segment, char* str)
+{
+    spi->ret = oled_open(spi);
+    assert(spi->ret == ESP_OK);
+    spi->ret = oled_show_string(spi, page, segment, str);
+    assert(spi->ret == ESP_OK);
+    spi->ret = oled_close(spi);
+    assert(spi->ret == ESP_OK);
+}
+
+/**
+ * @brief: show number
+ * @param: `spi` the handle of SPI
+ *         `page` choose the page(0-7)
+ *         `segment` choose the segment(0-127)
+ *         `num` the number to be showed in oled, could be float or int
+ * @return: ESP_OK success
+ *          ESP_FAIL fail
  */
 esp_err_t oled_show_number(spi_t *spi, uint8_t page, uint8_t segment, float num)
 {
@@ -405,9 +462,30 @@ esp_err_t oled_show_number(spi_t *spi, uint8_t page, uint8_t segment, float num)
 }
 
 /**
- * @brief: 
- * @param {type} 
- * @return: 
+ * @brief: show number
+ * @param: `spi` the handle of SPI
+ *         `page` choose the page(0-7)
+ *         `segment` choose the segment(0-127)
+ *         `num` the number to be showed in oled, could be float or int
+ * @return: ESP_OK success
+ *          ESP_FAIL fail
+ */
+void oled_show_number_auto(spi_t *spi, uint8_t page, uint8_t segment, float num)
+{
+    spi->ret = oled_open(spi);
+    assert(spi->ret == ESP_OK);
+    spi->ret = oled_show_number(spi, page, segment, num);
+    assert(spi->ret == ESP_OK);
+    spi->ret = oled_close(spi);
+    assert(spi->ret == ESP_OK);
+}
+/**
+ * @brief: horizontal_scroll from left to right
+ * @param: `spi` the handle of SPI
+ *         `start_page` the start page(0-7)
+ *         `end_page` the end page(0-7)
+ *         `interval` the frame 
+ * @return: none
  */
 void oled_right_horizontal_scroll(spi_t *spi, uint8_t start_page, uint8_t end_page, uint8_t interval)
 {
@@ -425,9 +503,12 @@ void oled_right_horizontal_scroll(spi_t *spi, uint8_t start_page, uint8_t end_pa
 }
 
 /**
- * @brief: 
- * @param {type} 
- * @return: 
+ * @brief: horizontal_scroll from right to left
+ * @param: `spi` the handle of SPI
+ *         `start_page` the start page(0-7)
+ *         `end_page` the end page(0-7)
+ *         `interval` the frame 
+ * @return: none
  */
 void oled_left_horizontal_scroll(spi_t *spi, uint8_t start_page, uint8_t end_page, uint8_t interval)
 {
@@ -445,9 +526,9 @@ void oled_left_horizontal_scroll(spi_t *spi, uint8_t start_page, uint8_t end_pag
 }
 
 /**
- * @brief: 
- * @param {type} 
- * @return: 
+ * @brief: exit the scroll mode
+ * @param: `spi` the handle of SPI
+ * @return: none
  */
 void oled_exit_scroll(spi_t *spi)
 {
@@ -455,4 +536,27 @@ void oled_exit_scroll(spi_t *spi)
     uint8_t cmd_set = 0x2E;
     ret = oled_write_buf(spi, &cmd_set, 1, COMMAND);
     assert(ret ==ESP_OK);
+}
+
+/**
+ * @brief: remove oled from spi bus
+ * @param: `spi` the handle of SPI
+ * @return: ESP_OK success
+ *          ESP_FAIL fail
+ */
+esp_err_t oled_close(spi_t *spi)
+{
+    return closeport(spi);
+}
+
+/**
+ * @brief: add oled from spi bus
+ * @param: `spi` the handle of SPI
+ *         `devcfg` the pointer of spi_device_interface_config_t
+ * @return: ESP_OK success
+ *          ESP_FAIL fail
+ */
+esp_err_t oled_open(spi_t *spi)
+{
+    return openport(spi, &oledcfg);
 }
