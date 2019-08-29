@@ -4,7 +4,7 @@
  * @Author: donghang
  * @Date: 2019-08-04 21:56:33
  * @LastEditors: donghang
- * @LastEditTime: 2019-08-24 06:39:24
+ * @LastEditTime: 2019-08-27 23:06:13
  */
 #include "spi_oled.h"
 #include "driver/gpio.h"
@@ -31,7 +31,7 @@ spi_device_interface_config_t oledcfg  = {
     .address_bits = CONFIG_ADDRESS_BITS,
     .clock_speed_hz = CONFIG_CLOCK_SPEED_HZ,
     .mode = CONFIG_MODE,
-    .spics_io_num = CONFIG_SPICS_IO_NUM,
+    .spics_io_num = CONFIG_SPICS_IO_NUM_OLED,
     .queue_size = CONFIG_QUEUE_SIZE,
     .pre_cb = lcd_spi_pre_transfer_callback,
 };
@@ -53,9 +53,13 @@ static esp_err_t oled_gpio_config(gpio_config_t *oled_io_conf)
 }
 
 /**
- * @brief: 
- * @param {type} 
- * @return: 
+ * @brief: write buffer into oled 
+ * @param: `spi` the handle of SPI
+ *         `buffer` the buffer of data
+ *         `len` the length of buffer
+ *         `uservarabile` User-defined variable. Can be used to store eg transaction ID. if in oled, this parameter could be cmd or data.
+ * @return: ESP_OK on success
+ *          ESP_FAIL on fail
  */
 static esp_err_t oled_write_buf(spi_t *spi, uint8_t *buffer, size_t len, void *uservarabile)
 {
@@ -63,9 +67,12 @@ static esp_err_t oled_write_buf(spi_t *spi, uint8_t *buffer, size_t len, void *u
 }
 
 /**
- * @brief: 
- * @param {type} 
- * @return: 
+ * @brief: write buffer into oled 
+ * @param: `spi` the handle of SPI
+ *         `data` the data
+ *         `uservarabile` User-defined variable. Can be used to store eg transaction ID. if in oled, this parameter could be cmd or data.
+ * @return: ESP_OK on success
+ *          ESP_FAIL on fail
  */
 static uint8_t oled_write_byte(spi_t *spi, uint8_t data, void * uservarabile)
 {
@@ -73,9 +80,10 @@ static uint8_t oled_write_byte(spi_t *spi, uint8_t data, void * uservarabile)
 }
 
 /**
- * @brief: 
- * @param {type} 
- * @return: 
+ * @brief: config oled and power up it
+ * @param: `spi` the handle of SPI
+ * @return: ESP_OK on success
+ *          ESP_FAIL on fail
  */
 esp_err_t oled_power_up(spi_t *spi)
 {
@@ -131,9 +139,9 @@ esp_err_t oled_power_up(spi_t *spi)
 }
 
 /**
- * @brief: 
- * @param {type} 
- * @return: 
+ * @brief: config oled and power up it and anto attach with SPI bus
+ * @param: `spi` the handle of SPI
+ * @return: none
  */
 void oled_power_up_auto(spi_t *spi)
 {
@@ -145,9 +153,11 @@ void oled_power_up_auto(spi_t *spi)
     assert(spi->ret == ESP_OK);
 }
 /**
- * @brief: 
- * @param {type} 
- * @return: 
+ * @brief: set oled page and segment
+ * @param: `cmd` the command 
+ *         `page` the page of oled(0-7)
+ *         `segment` the segment of oled(0-127) 
+ * @return: none
  */
 static void oled_set_page_segment(uint8_t *cmd, uint8_t page, uint8_t segment)
 {
@@ -157,9 +167,10 @@ static void oled_set_page_segment(uint8_t *cmd, uint8_t page, uint8_t segment)
 }
 
 /**
- * @brief: 
- * @param {type} 
- * @return: 
+ * @brief: clear the oled
+ * @param: `spi` the handle of SPI
+ * @return: ESP_OK on success
+ *          ESP_FAIL on fail
  */
 esp_err_t oled_clear(spi_t *spi)  
 {
@@ -179,9 +190,9 @@ esp_err_t oled_clear(spi_t *spi)
 }
 
 /**
- * @brief: 
- * @param {type} 
- * @return: 
+ * @brief: clear the oled and auto attach and deattach with SPU bus
+ * @param: `spi` the handle of SPI
+ * @return: none
  */
 void oled_clear_auto(spi_t *spi)  
 {
@@ -192,10 +203,12 @@ void oled_clear_auto(spi_t *spi)
     spi->ret = oled_close(spi);
     assert(spi->ret == ESP_OK);
 }
+
 /**
- * @brief: 
- * @param {type} 
- * @return: 
+ * @brief: reset th oled
+ * @param: `spi` the handle of SPI
+ * @return: ESP_OK on success
+ *          ESP_FAIL on fail
  */
 esp_err_t oled_reset(spi_t *spi)
 {
@@ -204,9 +217,10 @@ esp_err_t oled_reset(spi_t *spi)
 }
 
 /**
- * @brief: 
- * @param {type} 
- * @return: 
+ * @brief: oled enter the sleep mode
+ * @param: `spi` the handle of SPI 
+ * @return: ESP_OK on success
+ *          ESP_FAIL on fail
  */
 esp_err_t oled_entering_sleep_mode(spi_t *spi)
 {
@@ -217,9 +231,10 @@ esp_err_t oled_entering_sleep_mode(spi_t *spi)
 }
 
 /**
- * @brief: 
- * @param {type} 
- * @return: 
+ * @brief: oled exit the sleep mode
+ * @param: `spi` the handle of SPI 
+ * @return: ESP_OK on success
+ *          ESP_FAIL on fail
  */
 esp_err_t oled_exiting_sleep_mode(spi_t *spi)
 {
@@ -231,9 +246,14 @@ esp_err_t oled_exiting_sleep_mode(spi_t *spi)
 }
 
 /**
- * @brief: 
- * @param {type} 
- * @return: 
+ * @brief: dispale the content
+ * @param: `spi` the handle of SPI
+ *         `line` the raw data
+ *         `page` the page of oled
+ *         `segment` the segment of oled
+ *         `height` the height of type
+ *         `height` the width of type
+ * @return: none
  */
 static inline void display(spi_t *spi, uint8_t* line, uint8_t page, uint8_t segment, uint8_t height, uint8_t width)
 {
@@ -249,9 +269,9 @@ static inline void display(spi_t *spi, uint8_t* line, uint8_t page, uint8_t segm
 }
 
 /**
- * @brief: 
- * @param {type} 
- * @return: 
+ * @brief: converse the byte
+ * @param: `data` the uint8 data 
+ * @return: the data after converse
  */
 uint8_t byte_change(uint8_t data)
 {
@@ -269,8 +289,8 @@ uint8_t byte_change(uint8_t data)
  * @brief: show a char in screen in position defined in page(y coordinate) and segment(x coordinate).
  * @param: `page` there are 8(from 0 to 7) pages in oled(rows), choose a page to write a character into the RAM of oled 
  *         according your configuration(for instance, remapping).
- * @param: `segment` there are 128(from 0 to 127) segments in oled(columns), chose a segment to write a character.
- * @param: `character` it will be weitten into RAM of oled.
+ *         `segment` there are 128(from 0 to 127) segments in oled(columns), chose a segment to write a character.
+ *         `character` it will be weitten into RAM of oled.
  * @return: ESP_OK on success, ESP_FAIL on fail.
  */
 static esp_err_t oled_show_char(spi_t *spi, uint8_t page, uint8_t segment, char* c)
@@ -297,7 +317,9 @@ static esp_err_t oled_show_char(spi_t *spi, uint8_t page, uint8_t segment, char*
 
 /**
  * @brief: transpose one column
- * @param {type} 
+ * @param: `raw_data` the raw data
+ *         `shift_column` the shift of one byte(0-7)
+ *         `choosed_column` the column to be choosed
  * @return: transposed one column
  */
 static uint16_t transpose_one_column(uint16_t *raw_data, uint16_t shift_column, uint8_t choosed_column) {
@@ -311,7 +333,8 @@ static uint16_t transpose_one_column(uint16_t *raw_data, uint16_t shift_column, 
 
 /**
  * @brief: transpose the all array
- * @param {type} 
+ * @param: `raw_data` the raw data
+ *         `processed_data` the processed data
  * @return: none
  */
 static void transposition(uint16_t *raw_data, uint8_t *processed_data)
@@ -379,8 +402,8 @@ static esp_err_t oled_show_chinese(spi_t *spi, uint8_t page, uint8_t segment, ch
 esp_err_t oled_show_string(spi_t *spi, uint8_t page, uint8_t segment, char* str)
 {
     esp_err_t ret = ESP_FAIL;
-    uint8_t current_segment = page;
-    uint8_t current_page = segment;
+    uint8_t current_segment = segment;
+    uint8_t current_page = page;
     while(*str != '\0') {
         if(*str > 0x80) {
             // chinese
@@ -479,6 +502,7 @@ void oled_show_number_auto(spi_t *spi, uint8_t page, uint8_t segment, float num)
     spi->ret = oled_close(spi);
     assert(spi->ret == ESP_OK);
 }
+
 /**
  * @brief: horizontal_scroll from left to right
  * @param: `spi` the handle of SPI

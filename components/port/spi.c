@@ -4,7 +4,7 @@
  * @Author: donghang
  * @Date: 2019-08-04 21:56:33
  * @LastEditors: donghang
- * @LastEditTime: 2019-08-21 22:39:17
+ * @LastEditTime: 2019-08-27 23:37:26
  */
 #include  "spi.h"
 
@@ -12,9 +12,9 @@
 #define TOTAL_DATA_LENGTH(length) length*ONE_BYTE_LENGTH
 
 spi_bus_config_t buscfg = {
-    .miso_io_num = CONFIG_MISO_IO_NUM,
-    .mosi_io_num = CONFIG_MOSI_IO_NUM,
-    .sclk_io_num = CONFIG_SCLK_IO_NUM,
+    .miso_io_num = CONFIG_MISO_IO_NUM, // 25
+    .mosi_io_num = CONFIG_MOSI_IO_NUM, // 23
+    .sclk_io_num = CONFIG_SCLK_IO_NUM, // 19
     .quadwp_io_num = -1,
     .quadhd_io_num = -1,
     .max_transfer_sz = CONFIG_MAX_TRANSFER_SZ,

@@ -1,45 +1,6 @@
 menu "Peripheral or Module"
 
-    menuconfig USE_SPI_OLED
-        bool "spi oled"
-
-    menu "select gpio"
-        depends on USE_SPI_OLED
-
-        config IO_D0
-            int "select d0"
-            default 0
-
-        config IO_D1
-            int "select d1"
-            default 0
-
-        config IO_RES
-            int "select IO_RES"
-            default 0
-
-        config IO_DC
-            int "select dc"
-            default 0
-
-        config IO_CS
-            int "select cs"
-            default 0
-
-    endmenu # select gpio
-
-    menu "polling or interupt"
-        depends on USE_SPI_OLED
-
-        config POLLING_TRANSMIT
-            bool "use polling to transmit data"
-        config INTERRUPT_TRANSMIT
-            bool "use interupt to transmit data"
-            
-    endmenu # polling or interupt
-
     menu "spi bus config"
-        depends on USE_SPI_OLED
 
         config HSPI_HOST
             bool "select hspi"
@@ -69,7 +30,33 @@ menu "Peripheral or Module"
             int "select dma chan"
             default 0
 
+    menu "polling or interupt"
+        depends on USE_SPI_OLED
+
+        config POLLING_TRANSMIT
+            bool "use polling to transmit data"
+        config INTERRUPT_TRANSMIT
+            bool "use interupt to transmit data"
+            
+    endmenu # polling or interupt
+
     endmenu # spi bus config
+
+    menuconfig USE_SPI_OLED
+        bool "spi oled"
+
+    menu "select gpio"
+        depends on USE_SPI_OLED
+
+        config IO_RES
+            int "select IO_RES"
+            default 0
+
+        config IO_DC
+            int "select IO_DC"
+            default 0
+
+    endmenu # select gpio
 
     menu "spi device interface config"
         depends on USE_SPI_OLED
@@ -86,7 +73,37 @@ menu "Peripheral or Module"
         config MODE
             int "mode"
             default 0
-        config SPICS_IO_NUM
+        config SPICS_IO_NUM_OLED
+            int "spics_io_num"
+            default 0
+        config QUEUE_SIZE
+            int "queue_size"
+            default 0
+        config PRE_CB
+            string "pre_cb"
+            default "NULL"
+
+    endmenu # spi device interface config
+
+    menuconfig USE_SPI_W25QXX
+        bool "spi w25qxx"
+
+    menu "spi device interface config"
+        depends on USE_SPI_W25QXX
+        
+        config COMMAND_BITS 
+            int "command_bits"
+            default 0
+        config ADDRESS_BITS
+            int "address_bits"
+            default 0
+        config CLOCK_SPEED_HZ
+            int "clock_speed_hz"
+            default 1000000
+        config MODE
+            int "mode"
+            default 0
+        config SPICS_IO_NUM_W25QXX
             int "spics_io_num"
             default 0
         config QUEUE_SIZE

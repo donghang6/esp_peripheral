@@ -4,7 +4,7 @@
  * @Author: donghang
  * @Date: 2019-08-20 06:39:45
  * @LastEditors: donghang
- * @LastEditTime: 2019-08-24 00:23:58
+ * @LastEditTime: 2019-08-26 09:03:13
  */
 #include "w25qxx.h"
 #include "stdlib.h"
@@ -25,7 +25,7 @@ spi_device_interface_config_t w25qxxcfg  = {
     .address_bits = CONFIG_ADDRESS_BITS,
     .clock_speed_hz = CONFIG_CLOCK_SPEED_HZ,
     .mode = CONFIG_MODE,
-    .spics_io_num = 18,
+    .spics_io_num = CONFIG_SPICS_IO_NUM_W25QXX,
     .queue_size = CONFIG_QUEUE_SIZE,
 };
 
@@ -73,7 +73,7 @@ esp_err_t W25QXX_Init(spi_t *spi)
 }
 
 /**
- * @brief: initialize w25qxx
+ * @brief: initialize w25qxx and auto attach with SPI bus
  * @param: spi the handle of SPI 
  * @return: ESP_OK on success
  *          ESP_FAIL on fail
@@ -185,9 +185,8 @@ esp_err_t W25QXX_Read(spi_t *spi, uint8_t* pBuffer, uint32_t ReadAddr, uint16_t 
     return spi->ret;
 }
 
-
 /**
- * @brief: Reads the data of the specified length at the specified location. the address is from high to low
+ * @brief: Reads the data of the specified length at the specified location. the address is from high to low and auto attach with SPI bus
  * @param: `pBuffer` the data which has been read to be stored in this array
  *         `ReadAddr` the address that is about to read 
  *         `NunByteToRead` the bytes to read
@@ -203,6 +202,7 @@ void W25QXX_Read_auto(spi_t *spi, uint8_t* pBuffer, uint32_t ReadAddr, uint16_t 
     spi->ret = w25qxx_close(spi);
     assert(spi->ret == ESP_OK);
 }
+
 /**
  * @brief: SPI writes less than 256 bytes of data on one page (0 ≤ 65535). 
  *         Writes up to 256 bytes of data at the specified address.
@@ -264,6 +264,11 @@ esp_err_t W25QXX_Write_NoCheck(spi_t *spi, uint8_t* pBuffer, uint32_t WriteAddr,
 }
 
 uint8_t W25QXX_BUFFER[4][1024] = {};
+/**
+ * @brief: read 4K data form SPI bus
+ * @param: `spi` the handle of SPI
+ * @return: none
+ */
 static void W25QXX_Read_4K(spi_t *spi)
 {
     W25QXX_Read(spi, W25QXX_BUFFER[0], 0, 1024);
@@ -339,7 +344,7 @@ esp_err_t W25QXX_Write(spi_t *spi, uint8_t* pBuffer, uint32_t WriteAddr, uint16_
 }
 
 /**
- * @brief: write SPI FLASH in indicate address. this function has erase feature(the least erase size is 4Kb)
+ * @brief: write SPI FLASH in indicate address. this function has erase feature(the least erase size is 4Kb) and auto attach with SPI bus
  * @param: `spi` the handle of SPI
  *         `pBuffer` data storage area
  *         `WriteAddr` address to write data, the address should be 4k alignment.
@@ -356,10 +361,12 @@ void W25QXX_Write_auto(spi_t *spi, uint8_t* pBuffer, uint32_t WriteAddr, uint16_
     spi->ret = w25qxx_close(spi);
     assert(spi->ret == ESP_OK);
 }
+
 /**
  * @brief: erase all chip
  * @param: `spi` the handle of SPI 
- * @return: 
+ * @return: ESP_OK on success
+ *          ESP_FAIL on fail
  */
 esp_err_t W25QXX_Erase_Chip(spi_t *spi)
 {
