@@ -11,9 +11,9 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "spi_oled.h"
-#include "ws2811.h"
-#include "ws2812b.h"
+#include "ws28xx.h"
 #include "color.h"
+
 /*
  * if this contructure couldn't relate to real device(eg. OLED), 
  * it's have no meaning. Because it's diffierent to each device.
@@ -30,16 +30,14 @@ void app_main()
     // oled_show_number_auto(&spi, 0, 0, 11.01);
     // oled_show_string_auto(&spi, 4, 0, "abcdefghigklmnopqrstuvwxyz");
 
-    ws2811_light(&spi, 30, MAGENTA);
-    ws2811_light(&spi, 30, RED);
     for(;;)
     {
         printf("\n");
         printf("\nHello World\n");
         vTaskDelay(1000 / portTICK_RATE_MS );
-        ws2811_light(&spi, 30, MAGENTA);
+        ws28xx_light(&spi, 10, GREEN_APPLE);
         vTaskDelay(1000 / portTICK_RATE_MS );
-        ws2811_light(&spi, 30, RED);
+        ws28xx_light(&spi, 10, GRAY);
     }
 }
 

@@ -2,64 +2,74 @@
  * @Descripttion: 
  * @version: 
  * @Author: donghang
- * @Date: 2019-08-27 22:58:48
+ * @Date: 2019-08-29 08:12:27
  * @LastEditors: donghang
- * @LastEditTime: 2019-08-29 22:21:18
+ * @LastEditTime: 2019-08-29 22:10:41
  */
-#include "ws2812b.h"
+#include "ws28xx.h"
 #include "color.h"
 #include <string.h>
 
-#define CODE0 0x80
-#define CODE1 0xF8
+#define WS2811 1
+#define WS2812B 0
 
+#if WS2811
+
+#define CODE0 0xF000
+#define CODE1 0xFF00
+
+#elif WS2812B
+
+#define CODE0 0xF000
+#define CODE1 0xFFC0
+
+#endif
 static esp_err_t reset(spi_t *spi);
-
 /**
- * @brief: the ws2812b interface config
+ * @brief: the ws28xx interface config
  */
-spi_device_interface_config_t ws2812bcfg  = {
-    .clock_speed_hz = 9000000,
+spi_device_interface_config_t ws28xxcfg  = {
+    .clock_speed_hz = 13000000,
     .mode = CONFIG_MODE,
     .spics_io_num = CONFIG_SPICS_IO_NUM_OLED,
     .queue_size = CONFIG_QUEUE_SIZE,
 };
 
 /**
- * @brief: write buffer into ws2812b 
+ * @brief: write buffer into ws28xx 
  * @param: `spi` the handle of SPI
  *         `buffer` the buffer of data
  *         `len` the length of buffer
  * @return: ESP_OK on success
  *          ESP_FAIL on fail
  */
-static esp_err_t ws2812b_write_buf(spi_t *spi, uint8_t *buffer, size_t len)
+static esp_err_t ws28xx_write_buf(spi_t *spi, uint8_t *buffer, size_t len)
 {
     return read_write_buff(spi, buffer, len, NULL, 0, 0, NULL);
 }
 
 
 /**
- * @brief: remove ws2812b from spi bus
+ * @brief: remove ws28xx from spi bus
  * @param: `spi` the handle of SPI
  * @return: ESP_OK success
  *          ESP_FAIL fail
  */
-static esp_err_t ws2812b_close(spi_t *spi)
+static esp_err_t ws28xx_close(spi_t *spi)
 {
     return closeport(spi);
 }
 
 /**
- * @brief: add ws2812b from spi bus
+ * @brief: add ws28xx from spi bus
  * @param: `spi` the handle of SPI
  *         `devcfg` the pointer of spi_device_interface_config_t
  * @return: ESP_OK success
  *          ESP_FAIL fail
  */
-static esp_err_t ws2812b_open(spi_t *spi)
+static esp_err_t ws28xx_open(spi_t *spi)
 {
-    return openport(spi, &ws2812bcfg);
+    return openport(spi, &ws28xxcfg);
 }
 
 /**
@@ -69,12 +79,14 @@ static esp_err_t ws2812b_open(spi_t *spi)
  *         `color` the color want to show 
  * @return: none
  */
-static void convert_color(uint8_t* converted, uint8_t count, uint32_t color)
+static void convert_color(uint16_t* converted, uint8_t count, uint32_t color)
 {
-    memset(converted, CODE0, count*24);
-    uint32_t red = color & 0xFF0000;
+    for(int i = 0; i < 24*count; i++) {
+        converted[i] = CODE0;
+    }
+    uint32_t red   = color & 0xFF0000;
     uint32_t green = color & 0x00FF00;
-    uint32_t blue = color & 0x0000FF;    
+    uint32_t blue  = color & 0x0000FF;    
     uint32_t temp_color = (green << 8) | (red >> 8) | blue;
     for(int cur_light = 0; cur_light < count; cur_light++) {
         uint32_t shift = 0x800000;
@@ -88,24 +100,32 @@ static void convert_color(uint8_t* converted, uint8_t count, uint32_t color)
     }
 }
 /**
- * @brief: light the ws2812b of count, the order is GRB
+ * @brief: light the ws28xx of count, the order is GRB
  * @param: `spi` the handle of SPI
- *         `count` the count of ws2812b
+ *         `count` the count of ws28xx
  *         `buffer` the color buffer
  * @return: ESP_OK success
  *          ESP_FAIL fail
  */
-esp_err_t ws2812b_light(spi_t *spi, uint8_t count, uint32_t color)
+esp_err_t ws28xx_light(spi_t *spi, uint8_t count, uint32_t color)
 {
-    uint8_t* buffer = malloc(sizeof(uint8_t)*count*24);
-    spi->ret = ws2812b_open(spi);
+    uint16_t* buffer = malloc(sizeof(uint16_t)*count*24);
+    uint8_t* line = malloc(sizeof(uint16_t)*count*24);
+    spi->ret = ws28xx_open(spi);
     assert(spi->ret == ESP_OK);
     convert_color(buffer, count, color);
-    spi->ret = ws2812b_write_buf(spi, buffer, count*24);
+    for(int i = 0; i < count*24; i++) {
+        line[2*i] = (buffer[i] >> 8) & 0xFF;
+        line[2*i+1] = buffer[i] & 0xFF;
+    }
+    for(int i = 0; i < 48; i++) {
+        printf("%x\n", line[i]);
+    }
+    spi->ret = ws28xx_write_buf(spi, line, count*24*2);
     assert(spi->ret == ESP_OK);
     spi->ret = reset(spi);
     assert(spi->ret == ESP_OK);
-    spi->ret = ws2812b_close(spi);
+    spi->ret = ws28xx_close(spi);
     assert(spi->ret == ESP_OK);
     free(buffer);
     return spi->ret;
@@ -119,11 +139,11 @@ esp_err_t ws2812b_light(spi_t *spi, uint8_t count, uint32_t color)
  */
 static esp_err_t reset(spi_t *spi)
 {
-    uint8_t *reset_buffer = malloc(sizeof(uint8_t)*(10+60+10)); // 16 0xFF 488 0 16 0xFF 300um
-    memset(reset_buffer, 0xFF, 10);
-    memset(reset_buffer+10, 0, 60);
-    memset(reset_buffer+10+60, 0xFF, 10);
-    spi->ret = ws2812b_write_buf(spi, reset_buffer, 10+60+10);
+    uint8_t *reset_buffer = malloc(sizeof(uint8_t)*(16+488+16)); // 16 0xFF 488 0 16 0xFF 300um
+    memset(reset_buffer, 0xFF, 16);
+    memset(reset_buffer+16, 0, 488);
+    memset(reset_buffer+16+488, 0xFF, 16);
+    spi->ret = ws28xx_write_buf(spi, reset_buffer, 16+488+16);
     assert(spi->ret == ESP_OK);
     return spi->ret;
 }

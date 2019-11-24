@@ -18,6 +18,7 @@
         "ws2812b.h": "c",
         "colors.h": "c",
         "random": "c",
-        "ws2811.h": "c"
+        "ws2811.h": "c",
+        "ws28xx.h": "c"
     }
 }

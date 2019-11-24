@@ -9,5 +9,5 @@
 #ifndef WS2811_H_
 #define WS2811_H
 #include "spi.h"
-esp_err_t ws2811_light(spi_t *spi, uint8_t count, uint32_t color);;
+esp_err_t ws28xx_light(spi_t *spi, uint8_t count, uint32_t color);;
 #endif
