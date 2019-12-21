@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+<<<<<<< HEAD
 #include "esp_log.h"
 #include "esp_bt.h"
 #include "esp_bt_main.h"
@@ -243,6 +244,13 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
                 ESP_LOGE(GATTS_TAG, "config adv data failed, error code = %x", ret);
             }
             adv_config_done |= adv_config_flag;
+=======
+#include "spi_oled.h"
+/*
+ * if this contructure couldn't relate to real device(eg. OLED), 
+ * it's have no meaning. Because it's diffierent to each device.
+ */
+>>>>>>> bugfix
 
             // ret = esp_ble_gap_config_adv_data(&scan_rsp_data);
             // if (ret){
@@ -369,6 +377,7 @@ static void gatts_profile_b_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
 }
 void app_main()
 {
+<<<<<<< HEAD
     esp_err_t ret;
 
     ret = nvs_flash_init();
@@ -437,4 +446,21 @@ void app_main()
     }
     
     return ;
+=======
+    esp_err_t ret = ESP_FAIL;
+    spi_t oled_spi;
+    ret = spi_bus_init(&oled_spi); // initialize spi bus
+    assert(ret == ESP_OK);
+    ret = oled_power_up(&oled_spi);
+    assert(ret == ESP_OK);
+    ret = oled_clear(&oled_spi);
+    assert(ret == ESP_OK);
+    oled_show_number(&oled_spi, 0, 0, 11.01);
+    for(;;)
+    {
+        printf("\n");
+        printf("\nHello World\n");
+        vTaskDelay(1000 / portTICK_RATE_MS );
+    }
+>>>>>>> bugfix
 }

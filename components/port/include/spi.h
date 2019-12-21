@@ -12,9 +12,21 @@
 #include <stdlib.h>
 #include <string.h>
 #include "driver/spi_master.h"
-#include "driver/spi_slave.h"
 #include "sdkconfig.h"
 
+#define CONFIG_IO_DC 17
+#define CONFIG_MISO_IO_NUM 25
+#define CONFIG_MOSI_IO_NUM 23
+#define CONFIG_SCLK_IO_NUM 19
+#define CONFIG_MAX_TRANSFER_SZ 100
+#define CONFIG_SPICS_IO_NUM 22
+#define CONFIG_QUEUE_SIZE 7
+#define CONFIG_MODE 0
+#define CONFIG_IO_RES 16
+#define CONFIG_CLOCK_SPEED_HZ 1000000
+#define CONFIG_DMA_CHAN 1
+#define CONFIG_COMMAND_BITS 0
+#define CONFIG_ADDRESS_BITS 0
 /*
  * @brief: The struct of spi.
  * @host: SPI peripheral that controls this bus. Only support HSPI_HOST and VSPI_HOST
